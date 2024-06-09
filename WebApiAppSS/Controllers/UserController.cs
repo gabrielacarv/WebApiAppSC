@@ -1,10 +1,17 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
 using WebApiAppSS.Data;
 using WebApiAppSS.Data.Dtos.User;
 using WebApiAppSS.Models;
 using WebApiAppSS.Service.Authentication;
+using WebApiAppSS.Service.Email;
 using static System.Net.Mime.MediaTypeNames;
 
 namespace WebApiAppSS.Controllers
@@ -25,6 +32,7 @@ namespace WebApiAppSS.Controllers
 
 
         [HttpPost]
+        [Authorize]
         [Route("Login")]
         public IActionResult Login(LoginDto loginDto)
         {
@@ -219,5 +227,87 @@ namespace WebApiAppSS.Controllers
         //    db.SaveChanges();
         //    return Ok(user);
         //}
+
+        [HttpPost]
+        [Route("RequestPasswordReset/{email}")]
+        public async Task<IActionResult> RequestPasswordReset( string email)
+        {
+            try
+            {
+                var user = await db.User.SingleOrDefaultAsync(u => u.Email == email);
+                if (user == null)
+                {
+                    return NotFound(new { message = "Usuário não encontrado." });
+                }
+
+                var token = _authService.GeneratePasswordResetToken(user.Email);
+
+                // Enviar email de recuperação
+                var emailService = new EmailService(); // Certifique-se de ter implementado este serviço
+                await emailService.SendPasswordResetEmailAsync(email, token);
+
+                return Ok(new { message = "Email de recuperação enviado." });
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"Erro ao solicitar recuperação de senha: {ex}");
+                return StatusCode(500, new { message = "Erro ao solicitar recuperação de senha." });
+            }
+        }
+
+        [HttpPost]
+        [Route("ResetPassword")]
+        public async Task<IActionResult> ResetPassword([FromForm] ResetPasswordModel model)
+        {
+            try
+            {
+                var principal = _authService.ValidateToken(model.Token);
+                if (principal == null)
+                {
+                    return BadRequest(new { message = "Token inválido ou expirado." });
+                }
+
+                var emailClaim = principal.FindFirst(ClaimTypes.Email);
+                var tokenTypeClaim = principal.FindFirst("TokenType");
+
+                if (emailClaim == null || tokenTypeClaim == null || tokenTypeClaim.Value != "PasswordReset")
+                {
+                    return BadRequest(new { message = "Token inválido." });
+                }
+
+                var user = await db.User.SingleOrDefaultAsync(u => u.Email == emailClaim.Value);
+                if (user == null)
+                {
+                    return BadRequest(new { message = "Usuário não encontrado." });
+                }
+
+                user.Password = model.Password;
+
+                db.User.Update(user); 
+                await db.SaveChangesAsync(); 
+
+                return Ok(new { message = "Senha redefinida com sucesso." });
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"Erro ao redefinir senha: {ex}");
+                return StatusCode(500, new { message = "Erro ao redefinir senha." });
+            }
+        }
+
+        public static string HashPassword(string password)
+        {
+            using (var sha256 = SHA256.Create())
+            {
+                var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
+                var builder = new StringBuilder();
+                foreach (var b in bytes)
+                {
+                    builder.Append(b.ToString("x2"));
+                }
+                return builder.ToString();
+            }
+        }
+
     }
 }
