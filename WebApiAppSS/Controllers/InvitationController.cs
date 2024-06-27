@@ -55,17 +55,12 @@ namespace WebApiAppSS.Controllers
         }
 
         [HttpPut]
-        [Route("UpdateInvitationStatus/{invitationId}")]
-        public async Task<IActionResult> UpdateInvitationStatus(int invitationId, [FromForm] UpdateInvitationDto updateDto)
+        [Route("UpdateInvitationStatus/{groupId}")]
+        public async Task<IActionResult> UpdateInvitationStatus(int groupId, [FromForm] UpdateInvitationDto updateDto)
         {
-            if (invitationId != updateDto.InvitationId)
-            {
-                return BadRequest("ID do convite não corresponde.");
-            }
-
             try
             {
-                var invitation = await db.Invitation.FindAsync(invitationId);
+                var invitation = await db.Invitation.FirstOrDefaultAsync(i => i.GroupId == groupId && i.RecipientId == updateDto.RecipientId);
 
                 if (invitation == null)
                 {
@@ -84,6 +79,7 @@ namespace WebApiAppSS.Controllers
                 return StatusCode(500, "Erro interno no servidor.");
             }
         }
+
 
     }
 }

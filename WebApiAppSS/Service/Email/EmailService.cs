@@ -18,13 +18,35 @@ namespace WebApiAppSS.Service.Email
             message.Subject = "Recuperação de Senha";
 
             string resetLink = $"{resetToken}";
-            message.Body = new TextPart("plain")
+            //message.Body = new TextPart("plain")
+            //{
+            //    Text = $"Você solicitou a recuperação de senha para sua conta.\n\n" +
+            //           $"Copie e cole o token abaixo no aplicativo para redefinir sua senha:\n\n" +
+            //           $"{resetLink}\n\n" +
+            //           "Se não foi você, ignore este e-mail e sua senha permanecerá inalterada.\n"
+            //};
+
+            message.Body = new TextPart("html")
             {
-                Text = $"Você está recebendo isso porque você (ou alguém) solicitou a recuperação da senha para sua conta.\n\n" +
-                       $"Por favor, clique no link a seguir ou cole no seu navegador para completar o processo:\n\n" +
-                       $"{resetLink}\n\n" +
-                       "Se você não solicitou isso, por favor ignore este email e sua senha permanecerá a mesma.\n"
+                Text = $@"
+                <html>
+                    <body style='background-color: #f2f2f2; font-family: Arial, sans-serif;'>
+                        <div style='max-width: 600px; margin: auto; background-color: #ffffff; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);'>
+                            <h2 style='color: #f2601d; text-align: center;'>Recuperação de Senha</h2>
+                            <p>Você solicitou a recuperação de senha para sua conta.</p>
+                            <p>Copie e cole o token abaixo no aplicativo para redefinir sua senha:</p>
+                            <div style='text-align: center; margin: 20px 0;'>
+                                <div style='display: inline-block; padding: 10px 20px; font-size: 16px; color: #ffffff; background-color: #f2601d; border-radius: 5px; word-break: break-all;'>
+                                    {resetLink}
+                                </div>
+                            </div>
+                            <p>Se não foi você, ignore este e-mail e sua senha permanecerá inalterada.</p>
+                            <p style='text-align: center; color: #888888;'>© 2024 Sorte Cacau</p>
+                        </div>
+                    </body>
+                </html>"
             };
+
 
             using var client = new SmtpClient();
             await client.ConnectAsync(SmtpServer, SmtpPort, MailKit.Security.SecureSocketOptions.StartTls);

@@ -220,6 +220,73 @@ namespace WebApiAppSS.Controllers
             return Ok(new { imageUrl = base64Image });
         }
 
+        [HttpPut]
+        [Route("DeleteGroup/{groupId}")]
+        public async Task<IActionResult> DeleteGroup(int groupId)
+        {
+            try
+            {
+                // Obtém o grupo pelo ID
+                var group = await db.Group.FindAsync(groupId);
+                if (group == null)
+                {
+                    return NotFound($"Grupo com ID {groupId} não encontrado.");
+                }
+
+                // Obtém todos os convites do grupo especificado
+                var invitations = await db.Invitation
+                    .Where(i => i.GroupId == groupId)
+                    .ToListAsync();
+
+                // Atualiza o status de todos os convites para "recusado"
+                invitations.ForEach(i => i.Status = "recusado");
+
+                // Remove o administrador do grupo
+                group.Administrator = 2014;
+
+                // Salva as alterações no banco de dados
+                await db.SaveChangesAsync();
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"Erro ao deletar grupo: {ex}");
+                return StatusCode(500, "Erro ao deletar grupo. Tente novamente mais tarde.");
+            }
+        }
+
+        [HttpPut]
+        [Route("LeaveGroup/{groupId}/{participantId}")]
+        public async Task<IActionResult> LeaveGroup(int groupId, int participantId)
+        {
+            try
+            {
+                // Verifica se o participante está convidado para o grupo
+                var invitation = await db.Invitation.FirstOrDefaultAsync(i => i.GroupId == groupId && i.RecipientId == participantId);
+
+                if (invitation == null)
+                {
+                    return NotFound($"Usuário com ID {participantId} não está convidado para o grupo com ID {groupId}.");
+                }
+
+                // Atualiza o status do convite para "recusado"
+                invitation.Status = "recusado";
+
+                // Salva as alterações no banco de dados
+                await db.SaveChangesAsync();
+
+                return Ok($"Usuário com ID {participantId} saiu do grupo com ID {groupId}.");
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"Erro ao sair do grupo: {ex}");
+                return StatusCode(500, "Erro ao sair do grupo. Tente novamente mais tarde.");
+            }
+        }
+
+
+
         private Models.Group GetGroupById(int id)
         {
             var group = GetGroup();

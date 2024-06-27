@@ -32,7 +32,6 @@ namespace WebApiAppSS.Controllers
 
 
         [HttpPost]
-        [Authorize]
         [Route("Login")]
         public IActionResult Login(LoginDto loginDto)
         {
@@ -114,7 +113,7 @@ namespace WebApiAppSS.Controllers
         [HttpPut("UpdateUser/{id}")]
         public async Task<IActionResult> UpdateUser([FromForm] UpdateUserDto updateUserDto, int id)
         {
-            User existingUser = GetUserById(id);
+            User existingUser = UserById(id);
 
             if (existingUser == null)
             {
@@ -139,6 +138,27 @@ namespace WebApiAppSS.Controllers
             await db.SaveChangesAsync();
 
             return StatusCode(200);
+        }
+
+        [HttpGet]
+        [Route("UserById/{id}")]
+        public async Task<IActionResult> GetUserById(int id)
+        {
+            try
+            {
+                var user = await db.User.FindAsync(id);
+                if (user == null)
+                {
+                    return NotFound(new { message = "Usuário não encontrado." });
+                }
+
+                return Ok(user);
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"Erro ao obter usuário: {ex}");
+                return StatusCode(500, new { message = "Erro ao obter usuário." });
+            }
         }
 
         //[HttpGet("{userId}")]
@@ -199,7 +219,7 @@ namespace WebApiAppSS.Controllers
 
 
 
-        private User GetUserById(int id)
+        private User UserById(int id)
         {
             var user = GetUsers();
             User existingUser = user.FirstOrDefault(u => u.Id == id);
