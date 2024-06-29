@@ -18,14 +18,6 @@ namespace WebApiAppSS.Service.Email
             message.Subject = "Recuperação de Senha";
 
             string resetLink = $"{resetToken}";
-            //message.Body = new TextPart("plain")
-            //{
-            //    Text = $"Você solicitou a recuperação de senha para sua conta.\n\n" +
-            //           $"Copie e cole o token abaixo no aplicativo para redefinir sua senha:\n\n" +
-            //           $"{resetLink}\n\n" +
-            //           "Se não foi você, ignore este e-mail e sua senha permanecerá inalterada.\n"
-            //};
-
             message.Body = new TextPart("html")
             {
                 Text = $@"

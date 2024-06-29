@@ -15,26 +15,26 @@ namespace WebApiAppSS.Data
         }
 
         //FACULDADE
-        //protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        //{
-        //    optionsBuilder.UseSqlServer(@"Data source = 10.107.176.41, 1434;
-        //                            Database = BD044323; 
-        //                            User ID = RA044323; 
-        //                            Password = 044323;
-        //                            TrustServerCertificate=true"
-        //    );
-        //}
-
-        //CASA
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlServer(@"Data source = 201.62.57.93, 1434;
+            optionsBuilder.UseSqlServer(@"Data source = 10.107.176.41, 1434;
                                     Database = BD044323; 
                                     User ID = RA044323; 
                                     Password = 044323;
                                     TrustServerCertificate=true"
             );
         }
+
+        //CASA
+        //protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        //{
+        //    optionsBuilder.UseSqlServer(@"Data source = 201.62.57.93, 1434;
+        //                            Database = BD044323; 
+        //                            User ID = RA044323; 
+        //                            Password = 044323;
+        //                            TrustServerCertificate=true"
+        //    );
+        //}
         //}10.107.176.41,1434 201.62.57.93, 1434
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

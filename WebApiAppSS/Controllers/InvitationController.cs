@@ -25,13 +25,11 @@ namespace WebApiAppSS.Controllers
         {
             try
             {
-                // Verifica se já existe um convite para o mesmo grupo e destinatário
                 var existingInvitation = await db.Invitation.FirstOrDefaultAsync(inv => inv.GroupId == invitationDto.GroupId && inv.RecipientId == invitationDto.RecipientId);
 
                 if (existingInvitation != null)
                 {
-                    // Convite já existe, retorne um código de status correspondente
-                    return StatusCode(409); // Conflito, indicando que o convite já existe
+                    return StatusCode(409);
                 }
 
                 var invitation = new Invitation

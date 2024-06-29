@@ -24,12 +24,12 @@ namespace WebApiAppSS.Controllers
             try
             {
                 PerformDraw(drawDto.GroupId);
-                return Ok("Draw conducted successfully!");
+                return Ok("Sorteio realizado com sucesso!");
             }
             catch (Exception ex)
             {
-                Console.Error.WriteLine($"Error conducting draw: {ex}");
-                return StatusCode(500, $"Error conducting draw: {ex.Message}");
+                Console.Error.WriteLine($"Erro ao realizar sorteio: {ex}");
+                return StatusCode(500, $"Erro ao realizar sorteio: {ex.Message}");
             }
         }
 
@@ -52,15 +52,15 @@ namespace WebApiAppSS.Controllers
 
                 if (drawResult == null)
                 {
-                    return NotFound("Draw result not found.");
+                    return NotFound("Resultado do sorteio não encontrado.");
                 }
 
                 return Ok(drawResult);
             }
             catch (Exception ex)
             {
-                Console.Error.WriteLine($"Error fetching draw result: {ex}");
-                return StatusCode(500, $"Error fetching draw result: {ex.Message}");
+                Console.Error.WriteLine($"Erro ao buscar resultado do sorteio: {ex}");
+                return StatusCode(500, $"Erro ao buscar resultado do sorteio: {ex.Message}");
             }
         }
 
@@ -70,7 +70,7 @@ namespace WebApiAppSS.Controllers
 
             if (participants.Count < 2)
             {
-                throw new InvalidOperationException("The group must have at least 2 participants.");
+                throw new InvalidOperationException("O grupo deve ter pelo menos 2 participantes.");
             }
 
             var drawResults = Shuffle(participants);

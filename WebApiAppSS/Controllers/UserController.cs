@@ -133,7 +133,7 @@ namespace WebApiAppSS.Controllers
             existingUser.Email = updateUserDto.Email ?? existingUser.Email;
             existingUser.Password = updateUserDto.Password ?? existingUser.Password;
 
-            db.User.Update(existingUser); // Use Update ao invés de Add para atualizar a entidade
+            db.User.Update(existingUser);
 
             await db.SaveChangesAsync();
 
@@ -161,32 +161,6 @@ namespace WebApiAppSS.Controllers
             }
         }
 
-        //[HttpGet("{userId}")]
-        //public IActionResult GetUserImage(int userId)
-        //{
-        //    var user = db.User.Find(userId);
-        //    if (user == null)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    // Aqui você precisa recuperar os dados da imagem do usuário do banco de dados
-        //    // e retorná-los como um arquivo
-        //    // Suponha que a imagem do usuário esteja armazenada como um array de bytes na propriedade "Photo" do objeto User
-        //    byte[] imageData = user.Photo;
-
-        //    // Verifique se os dados da imagem não são nulos ou vazios
-        //    if (imageData == null || imageData.Length == 0)
-        //    {
-        //        return NotFound(); // Ou retorne uma imagem padrão ou um código de status NotFound, dependendo do seu caso de uso
-        //    }
-
-        //    // Defina o tipo de conteúdo para "imagem/jpeg" ou o tipo apropriado para sua imagem
-        //    Response.Headers.Add("Content-Type", "image/jpeg");
-
-        //    // Retorne os dados da imagem como um arquivo
-        //    return File(imageData, "image/jpeg");
-        //}
 
         [HttpGet("GetUserImage/{userId}")]
         public IActionResult GetUserImage(int userId)
@@ -197,23 +171,17 @@ namespace WebApiAppSS.Controllers
                 return NotFound();
             }
 
-            // Aqui você precisa recuperar os dados da imagem do usuário do banco de dados
-            // e convertê-los para uma string base64
             byte[] imageData = user.Photo;
 
-            // Verifique se os dados da imagem não são nulos ou vazios
             if (imageData == null || imageData.Length == 0)
             {
-                return NotFound(); // Ou retorne uma imagem padrão ou um código de status NotFound, dependendo do seu caso de uso
+                return NotFound();
             }
 
-            // Converta os dados da imagem para uma string base64
             string base64Image = Convert.ToBase64String(imageData);
 
-            // Construa o URL de dados para a imagem base64
             string imageDataUrl = $"data:image/jpeg;base64,{base64Image}";
 
-            // Retorne a URL de dados como resposta
             return Ok(new { imageUrl = base64Image });
         }
 
@@ -240,14 +208,6 @@ namespace WebApiAppSS.Controllers
             return db.User.ToList();
         }
 
-        //public IActionResult AddUser([FromForm] User user)
-        //{
-        //    db.User.Add(user);
-        //    if (user.Photo != null && user.Photo.Length > 0)
-        //    db.SaveChanges();
-        //    return Ok(user);
-        //}
-
         [HttpPost]
         [Route("RequestPasswordReset/{email}")]
         public async Task<IActionResult> RequestPasswordReset( string email)
@@ -262,8 +222,7 @@ namespace WebApiAppSS.Controllers
 
                 var token = _authService.GeneratePasswordResetToken(user.Email);
 
-                // Enviar email de recuperação
-                var emailService = new EmailService(); // Certifique-se de ter implementado este serviço
+                var emailService = new EmailService();
                 await emailService.SendPasswordResetEmailAsync(email, token);
 
                 return Ok(new { message = "Email de recuperação enviado." });

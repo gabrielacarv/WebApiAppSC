@@ -132,18 +132,36 @@ namespace WebApiAppSS.Controllers
             }
         }
 
+        [HttpGet]
+        [Route("GetGroupsByUserAdmin/{userId}")]
+        public async Task<IActionResult> GetGroupsByUserAdmin(int userId)
+        {
+            try
+            {
+                var groups = GetGroupByUserADM(userId);
+                return Ok(groups);
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"Erro ao obter grupos: {ex}");
+                return StatusCode(500);
+            }
+        }
+
+        private List<Models.Group> GetGroupByUserADM(int userId)
+        {
+            return (from grupo in db.Group       
+                    where grupo.Administrator == userId
+                    select grupo).Distinct().ToList();
+        }
+
         private List<Models.Group> GetGroupByUser(int userId)
         {
-            //return (from grupo in db.Group
-            //        join convite in db.Invitation on grupo.IdGroup equals convite.GroupId
-            //        join usuario in db.User on convite.RecipientId equals usuario.Id
-            //        where convite.RecipientId == userId && convite.Status == "aceito"
-            //        select grupo).ToList();
             return (from grupo in db.Group
                     join convite in db.Invitation on grupo.IdGroup equals convite.GroupId into convites
-                    from convite in convites.DefaultIfEmpty() // LEFT JOIN
+                    from convite in convites.DefaultIfEmpty()
                     join usuario in db.User on convite.RecipientId equals usuario.Id into usuarios
-                    from usuario in usuarios.DefaultIfEmpty() // LEFT JOIN
+                    from usuario in usuarios.DefaultIfEmpty()
                     where grupo.Administrator == userId || (convite != null && convite.RecipientId == userId && convite.Status == "Aceito")
                     select grupo).Distinct().ToList();
         }
@@ -226,25 +244,20 @@ namespace WebApiAppSS.Controllers
         {
             try
             {
-                // Obtém o grupo pelo ID
                 var group = await db.Group.FindAsync(groupId);
                 if (group == null)
                 {
                     return NotFound($"Grupo com ID {groupId} não encontrado.");
                 }
 
-                // Obtém todos os convites do grupo especificado
                 var invitations = await db.Invitation
                     .Where(i => i.GroupId == groupId)
                     .ToListAsync();
 
-                // Atualiza o status de todos os convites para "recusado"
                 invitations.ForEach(i => i.Status = "recusado");
 
-                // Remove o administrador do grupo
                 group.Administrator = 2014;
 
-                // Salva as alterações no banco de dados
                 await db.SaveChangesAsync();
 
                 return Ok();
@@ -262,7 +275,6 @@ namespace WebApiAppSS.Controllers
         {
             try
             {
-                // Verifica se o participante está convidado para o grupo
                 var invitation = await db.Invitation.FirstOrDefaultAsync(i => i.GroupId == groupId && i.RecipientId == participantId);
 
                 if (invitation == null)
@@ -270,10 +282,8 @@ namespace WebApiAppSS.Controllers
                     return NotFound($"Usuário com ID {participantId} não está convidado para o grupo com ID {groupId}.");
                 }
 
-                // Atualiza o status do convite para "recusado"
                 invitation.Status = "recusado";
 
-                // Salva as alterações no banco de dados
                 await db.SaveChangesAsync();
 
                 return Ok($"Usuário com ID {participantId} saiu do grupo com ID {groupId}.");
